@@ -1,0 +1,119 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+
+    //- bootstrap css and js
+    link(href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css' rel='stylesheet' integrity='sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC' crossorigin='anonymous')
+    script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js' integrity='sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM' crossorigin='anonymous')
+    
+    title Check-Out Helper
+  body
+    .container.bg-white.shadow.my-5 
+        .card-header
+            h2 Check-Out Helper
+        .card-body 
+            form(action='' method='post' id='transactionForm')
+                .row.mb-4
+                    //- hotel select
+                    label.form-label.fw-bold Hotel
+                    select.form-select(aria-label='' name='hotelid')
+                        //- selected option
+                        option(selected='') Choose from below
+                            //- array
+                            each hotel in hotelsArray
+                                option(value=hotel.hotelid) #{hotel.hotelname}
+                
+                .row.mb-4
+                    //- guestaccount select
+                    label.form-label.fw-bold Guest Account
+                    select.form-select(aria-label='' name='accountid')
+                        //- selected option
+                        option(selected='') Choose from below
+
+                .row.mb-4 
+                    //- folio id
+                    label.form-label.fw-bold Folio ID 
+                    input.form-control(type="text" name='folioid' readonly)
+
+                .row.mb-4 
+                    //- room id
+                    label.form-label.fw-bold Room ID 
+                    input.form-control(type="text" name='roomid' readonly)
+                
+                .d-grid.gap-2.w-25
+                    button.btn.btn-primary(id="ancBtn" type="button") Add Ancillary Transactions
+                    button.btn.btn-danger(id="hskBtn" type="button") Add Housekeeping Transactions
+                    button.btn.btn-warning(id="toinspectedBtn" type="button") To "Inspected"
+                    button.btn.btn-success(id="tovacantBtn" type="button") To "Vacant"
+                    
+            script.
+                const hotels = !{JSON.stringify(hotelsArray)}
+                const gaArray = !{JSON.stringify(gaArray)}
+
+                const hotelSelect = document.querySelector('select[name="hotelid"]')
+
+                const gaSelect = document.querySelector('select[name="accountid"]')
+                const gaOptions = document.querySelectorAll('select[name="accountid"] option')
+
+                const folioidInput = document.querySelector('input[name="folioid"]')
+                const roomidInput = document.querySelector('input[name="roomid"]')
+                
+
+                hotelSelect.addEventListener('change', (event)=>{
+                    gaSelect.innerHTML = ''
+
+                    gaOptions.forEach(option => {
+                        option.value = ''
+                        option.innerHTML = ''
+                    })
+
+                    gaArray.forEach(ga => {
+                        if(ga.hotelid == event.target.value){
+                            const newOption = document.createElement('option')
+                            newOption.value = ga.accountid
+                            newOption.innerText = ga.fullname
+                            newOption.setAttribute('data-folioid', ga.folioid)
+                            newOption.setAttribute('data-roomid', ga.roomid)
+                            gaSelect.appendChild(newOption)
+                        }
+                    })
+                })
+
+                function updateFolioID(){
+                    const selectedOption = gaSelect.options[gaSelect.selectedIndex]
+                    const selectedFolioID = selectedOption.getAttribute('data-folioid')
+                    const selectedRoomID = selectedOption.getAttribute('data-roomid')
+
+                    folioidInput.value = selectedFolioID
+                    roomidInput.value = selectedRoomID
+                }
+
+                gaSelect.addEventListener('change', updateFolioID)
+                hotelSelect.addEventListener('change', updateFolioID)
+
+                const form = document.getElementById('transactionForm')
+
+                document.getElementById('ancBtn').addEventListener('click', ()=>{
+                    form.action = '/transactions/anc'
+                    form.submit()
+                })
+
+                document.getElementById('hskBtn').addEventListener('click', ()=>{
+                    form.action = '/transactions/hsk'
+                    form.submit()
+                })
+
+                document.getElementById('toinspectedBtn').addEventListener('click', ()=>{
+                    form.action = '/transactions/toinspected'
+                    form.submit()
+                })
+
+                document.getElementById('tovacantBtn').addEventListener('click', ()=>{
+                    form.action = '/transactions/tovacant'
+                    form.submit()
+                })
+
+
+                
